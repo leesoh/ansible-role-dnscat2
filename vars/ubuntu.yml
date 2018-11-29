@@ -1,0 +1,5 @@
+---
+dnscat2_git_location: "/opt"
+dnscat2_dependencies:
+  - ruby-dev
+  - build-essential

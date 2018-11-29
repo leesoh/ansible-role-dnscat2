@@ -1,0 +1,59 @@
+---
+- set_fact:
+    ansible_distro: "{{ ansible_distribution|lower|replace(' ', '_')|replace('/', '-') }}"
+
+- name: Gather OS-specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+      - "{{ ansible_distro }}-{{ansible_distribution_version|lower|replace('/', '_') }}.yml"
+      - "{{ ansible_distro }}-{{ ansible_distribution_release }}.yml"
+      - "{{ ansible_distro }}-{{ansible_distribution_major_version|lower|replace('/', '_') }}.yml"
+      - "{{ ansible_distro }}.yml"
+      - "{{ ansible_os_family|lower }}.yml"
+
+- name: Nuke repo
+  become: true
+  when: nuke
+  file:
+    path: "{{ dnscat2_git_location }}/dnscat2"
+    state: absent
+
+- name: Clone repo
+  become: true
+  git:
+    repo: https://github.com/iagox86/dnscat2.git
+    dest: "{{ dnscat2_git_location }}/dnscat2"
+    update: yes
+  register: dnscat2
+
+- name: Update apt
+  become: true
+  apt:
+    update_cache: true
+
+- name: Install dependencies
+  become: true
+  when: dnscat2.changed
+  package:
+    name: "{{ dnscat2_dependencies }}"
+
+- name: Install bundler
+  become: true
+  when: dnscat2.changed
+  shell: gem install bundler
+
+- name: Install dnscat2
+  become: true
+  when: dnscat2.changed
+  bundler:
+    chdir: "{{ dnscat2_git_location }}/dnscat2/server"
+    state: latest
+
+- name: Disable systemd-resolved
+  become: true
+  when: ansible_service_mgr == "systemd"
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
