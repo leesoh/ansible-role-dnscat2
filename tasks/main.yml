@@ -12,13 +12,6 @@
       - "{{ ansible_distro }}.yml"
       - "{{ ansible_os_family|lower }}.yml"
 
-- name: Nuke repo
-  become: true
-  when: nuke
-  file:
-    path: "{{ dnscat2_git_location }}/dnscat2"
-    state: absent
-
 - name: Clone repo
   become: true
   git:
