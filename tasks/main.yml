@@ -32,10 +32,12 @@
     name: "{{ dnscat2_dependencies }}"
 
 - name: Install bundler
+  become: true
   when: dnscat2.changed
-  shell: gem install bundler
+  command: bash -lc "gem install bundler"
 
 - name: Install dnscat2
+  become: true
   when: dnscat2.changed
   bundler:
     chdir: "{{ dnscat2_git_location }}/dnscat2/server"
