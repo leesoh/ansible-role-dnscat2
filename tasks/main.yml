@@ -32,16 +32,20 @@
     name: "{{ dnscat2_dependencies }}"
 
 - name: Install bundler
-  become: true
+  # become: true
   when: dnscat2.changed
-  command: bash -lc "gem install bundler"
+  gem:
+    name: bundler
+    state: present
+    user_install: yes
 
 - name: Install dnscat2
-  become: true
+  # become: true
   when: dnscat2.changed
   bundler:
     chdir: "{{ dnscat2_git_location }}/dnscat2/server"
-    state: latest
+    state: present
+    user_install: yes
 
 - name: Disable systemd-resolved
   become: true
